@@ -1,0 +1,4 @@
+discord
+discord[voice]
+PyNaCl
+requests
