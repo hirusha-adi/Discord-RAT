@@ -1,0 +1,11 @@
+{
+    "token": "PASTE YOUR BOT TOKEN HERE",
+    "prefix": ">",
+    "users": [
+        584662127470575616,
+        752164534751461417
+    ],
+    "channel_ids": [
+        861861096512290836
+    ]
+}
