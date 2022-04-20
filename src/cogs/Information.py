@@ -115,6 +115,32 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
             except:
                 pass
 
+            # CPU Info
+            try:
+                final_cpu_info = ""
+                final_cpu_info += f'Number of Physical cores: `{psutil.cpu_count(logical=False)}`\n'
+                final_cpu_info += f'Number of Total cores: `{psutil.cpu_count(logical=True)}`\n'
+
+                try:
+                    cpu_frequency = psutil.cpu_freq()
+                    final_cpu_info += f'Max Frequency: `{cpu_frequency.max:.2f}Mhz`\n'
+                    final_cpu_info += f'Min Frequency: `{cpu_frequency.min:.2f}Mhz`\n'
+                    final_cpu_info += f'Current Frequency: `{cpu_frequency.current:.2f}Mhz`\n'
+                except:
+                    pass
+
+                final_cpu_info += f'Total CPU Usage: `{psutil.cpu_percent()}%`\n'
+
+                # usage of CPU per core
+                final_cpu_info += f'CPU Core usages are listed below -\n'
+                for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
+                    final_cpu_info += f"Core `{i}` : `{percentage}%`\n"
+
+                embed.add_field(name="CPU Information",
+                                value=final_cpu_info, inline=False)
+            except:
+                pass
+
             embed.set_footer(
                 text=f'Requested by {ctx.author.name}',
                 icon_url=ctx.author.avatar_url
@@ -126,6 +152,7 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
         if os.name == 'nt':
             # https://stackoverflow.com/questions/56300490/how-to-get-all-windows-linux-user-and-not-only-current-user-with-python
             pass
+            return
         else:
             # Users
             try:
@@ -143,8 +170,6 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
                     )
                     embed.set_thumbnail(
                         url="https://cdn.discordapp.com/attachments/877796755234783273/966386389249818704/unknown.png")
-                    await ctx.send(embed=embed)
-
                     embed.set_footer(
                         text=f'Requested by {ctx.author.name}',
                         icon_url=ctx.author.avatar_url
@@ -152,6 +177,62 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
                     await ctx.send(embed=embed)
 
                 return
+            except Exception as e:
+                await ctx.send(str(e))
+                return
+
+    @commands.command()
+    async def cpu(self, ctx):
+        if os.name == 'nt':
+            # https://stackoverflow.com/questions/56300490/how-to-get-all-windows-linux-user-and-not-only-current-user-with-python
+            pass
+            return
+        else:
+            # CPU Usage
+            try:
+                final_cpu_info = ""
+                final_cpu_info += f'Number of Physical cores: `{psutil.cpu_count(logical=False)}`\n'
+                final_cpu_info += f'Number of Total cores: `{psutil.cpu_count(logical=True)}`\n'
+
+                try:
+                    cpu_frequency = psutil.cpu_freq()
+                    final_cpu_info += f'Max Frequency: `{cpu_frequency.max:.2f}Mhz`\n'
+                    final_cpu_info += f'Min Frequency: `{cpu_frequency.min:.2f}Mhz`\n'
+                    final_cpu_info += f'Current Frequency: `{cpu_frequency.current:.2f}Mhz`\n'
+                except:
+                    pass
+
+                final_cpu_info += f'Total CPU Usage: `{psutil.cpu_percent()}%`\n'
+
+                # usage of CPU per core
+                final_cpu_info += f'CPU Core usages are listed below -\n'
+
+                cpu_per_core = ""
+                for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
+                    cpu_per_core += f"Core `{i}` : `{percentage}%`\n"
+
+                embed = discord.Embed(
+                    title=f"CPU Usage of {getpass.getuser()}'s computer",
+                    description="",
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_thumbnail(
+                    url="https://cdn.discordapp.com/attachments/877796755234783273/966386389249818704/unknown.png")
+
+                embed.add_field(name="Base Information",
+                                value=final_cpu_info, inline=False)
+
+                for chunk in textwrap.wrap(cpu_per_core, 1024, replace_whitespace=False):
+                    embed.add_field(name="CPU Usage per core",
+                                    value=chunk, inline=False)
+
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+
             except Exception as e:
                 await ctx.send(str(e))
                 return
