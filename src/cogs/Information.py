@@ -13,6 +13,7 @@ import re
 import uuid
 import psutil
 import pwd
+import textwrap
 
 from src.database.manager.main import users
 
@@ -119,6 +120,38 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
                 icon_url=ctx.author.avatar_url
             )
             await ctx.send(embed=embed)
+
+    @commands.command()
+    async def users(self, ctx):
+
+        # Users
+        try:
+            final_users_text = "`Name` **|** `Shell` **|** `Dir`\n"
+            users = pwd.getpwall()
+            for user in users:
+                final_users_text += f'{user.pw_name} | {user.pw_shell} | {user.pw_dir}\n'
+
+            for chunk in textwrap.wrap(final_users_text, 4096, replace_whitespace=False):
+                embed = discord.Embed(
+                    title=f"Users List of {getpass.getuser()}'s computer",
+                    description=chunk,
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_thumbnail(
+                    url="https://cdn.discordapp.com/attachments/877796755234783273/966386389249818704/unknown.png")
+                await ctx.send(embed=embed)
+
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+
+            return
+        except Exception as e:
+            await ctx.send(str(e))
+            return
 
 
 def setup(client: commands.Bot):
