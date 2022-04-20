@@ -3,10 +3,11 @@ import os
 import discord
 from discord.ext import commands
 
-from bot.database.manager import main as db_main
+from src.database.manager import main as db_main
 
 client = commands.Bot(command_prefix=db_main.prefix)
 
+# Load all cogs at startup of the bot
 for filename in os.listdir('./bot/cogs'):
     if filename.endswith('.py'):
         try:
@@ -19,22 +20,17 @@ for filename in os.listdir('./bot/cogs'):
 
 @client.command()
 async def loadex(ctx, extension):
-    if ctx.author.id in db_main.users:
-        client.load_extension(
-            f'bot.cogs.{extension if not(str(extension).endswith(".py")) else extension[:-3]}')
-        await ctx.send(f"Loaded cog: {extension}")
-    else:
-        await ctx.send("You do not have permissions to use this command!")
+    client.load_extension(
+        f'bot.cogs.{extension if not(str(extension).endswith(".py")) else extension[:-3]}')
+    await ctx.send(f"Loaded cog: {extension}")
 
 
 @client.command()
 async def unloadex(ctx, extension):
-    if ctx.author.id in db_main.users:
-        client.unload_extension(
-            f'bot.cogs.{extension if not(str(extension).endswith(".py")) else extension[:-3]}')
-        await ctx.send(f"Un-Loaded cog: {extension}")
-    else:
-        await ctx.send("You do not have permissions to use this command!")
+    client.unload_extension(
+        f'bot.cogs.{extension if not(str(extension).endswith(".py")) else extension[:-3]}')
+    await ctx.send(f"Un-Loaded cog: {extension}")
 
 
-client.run(db_main.token)
+if __name__ == "__main__":
+    client.run(db_main.token)

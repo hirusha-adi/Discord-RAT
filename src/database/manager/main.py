@@ -1,5 +1,5 @@
 import json
-from bot.utils.filenames import database
+from src.utils.filenames import database
 
 
 with open(database.main, "r", encoding="utf-8") as _file:

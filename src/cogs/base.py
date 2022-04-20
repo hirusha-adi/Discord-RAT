@@ -3,7 +3,7 @@ import platform
 import discord
 from discord.ext import commands
 
-from bot.database.manager.main import users
+from src.database.manager.main import users
 
 
 class Base(commands.Cog, description="Main stuff related to the bot"):

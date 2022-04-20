@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands
 
-from bot.database.manager import blacklisted
-from bot.database.manager import main
+from src.database.manager import main
 
 
 class OnMessage(commands.Cog, description="Handle the messages sent"):
