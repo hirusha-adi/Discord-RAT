@@ -7,6 +7,7 @@ from src.database.manager import main as db_main
 
 client = commands.Bot(command_prefix=db_main.prefix)
 
+
 # Load all cogs at startup of the bot
 for filename in os.listdir('./src/cogs'):
     if filename.endswith('.py'):
@@ -37,6 +38,11 @@ async def on_message(message):
     # Process commands only if in correct channel and requested by possible users
     if (message.channel.id in db_main.channel_ids) and (message.author.id in db_main.users):
         await client.process_commands(message)
+    else:
+        # dummy message for other users
+        if message.content.lower().startswith(db_main.prefix):
+            await message.reply("This bot is still under development. Stay tuned! Thank you.")
+            return
 
 if __name__ == "__main__":
     client.run(db_main.token)
