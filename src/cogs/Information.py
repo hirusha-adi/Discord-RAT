@@ -129,15 +129,82 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
                 except:
                     pass
 
-                final_cpu_info += f'Total CPU Usage: `{psutil.cpu_percent()}%`\n'
-
-                # usage of CPU per core
-                final_cpu_info += f'CPU Core usages are listed below -\n'
-                for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
-                    final_cpu_info += f"Core `{i}` : `{percentage}%`\n"
-
                 embed.add_field(name="CPU Information",
                                 value=final_cpu_info, inline=False)
+
+                cpu_per_core = ""
+                for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
+                    cpu_per_core += f"Core `{i}` : `{percentage}%`\n"
+
+                for chunk in textwrap.wrap(cpu_per_core, 1024, replace_whitespace=False):
+                    embed.add_field(name="CPU Core usages are listed below",
+                                    value=chunk, inline=False)
+            except:
+                pass
+
+            try:
+                with open("/proc/cpuinfo", "r") as f:
+                    file_info = f.readlines()
+                processor_list = ""
+                cpuinfo = [x.strip().split(":")[1]
+                           for x in file_info if "model name" in x]
+                for index, item in enumerate(cpuinfo):
+                    processor_list += f'`{index}`: `{item}`\n'
+
+                for chunk in textwrap.wrap(processor_list, 1024, replace_whitespace=False):
+                    embed.add_field(name="Processor",
+                                    value=chunk, inline=False)
+            except:
+                pass
+
+            try:
+                def bytes_to_GB(bytes):
+                    gb = bytes/(1024*1024*1024)
+                    gb = round(gb, 2)
+                    return gb
+
+                virtual_memory = psutil.virtual_memory()
+                virtual_memory_text = f'''**Present**: `{bytes_to_GB(virtual_memory.total)}`
+**Available**: `{bytes_to_GB(virtual_memory.available)}`
+**Used**: `{bytes_to_GB(virtual_memory.used)}`
+**Percentage Used**: `{bytes_to_GB(virtual_memory.percent)}`'''
+                embed.add_field(name="Memory",
+                                value=virtual_memory_text, inline=False)
+
+                swap = psutil.swap_memory()
+                swap_text = f'''**Total**: `{bytes_to_GB(swap.total)}`
+**Free**: `{bytes_to_GB(swap.free)}`
+**Used**: `{bytes_to_GB(swap.used)}`
+**Percentage Used**: `{swap.percent}%`'''
+                embed.add_field(name="Swap",
+                                value=swap_text, inline=False)
+            except:
+                pass
+
+            try:
+                all_disks = []
+                disk_partitions = psutil.disk_partitions()
+
+                for partition in disk_partitions:
+                    disk_usage = psutil.disk_usage(partition.mountpoint)
+                    all_disks.append(
+                        {
+                            'Partition Device': partition.device,
+                            'File System': partition.fstype,
+                            'Mount Point': partition.mountpoint,
+                            'Total Disk Space': f'{bytes_to_GB(disk_usage.total)} GB',
+                            'Free Disk Space': f'{bytes_to_GB(disk_usage.free)} GB',
+                            'Used Disk Space': f'{bytes_to_GB(disk_usage.used)} GB',
+                            'Percentage Used': f'{disk_usage.percent} %'
+                        }
+                    )
+
+                for disk in all_disks:
+                    info = ''
+                    for key, value in disk.items():
+                        info += f'{key}: `{value}`\n'
+                    embed.add_field(name=str(disk['Partition Device']),
+                                    value=info, inline=False)
             except:
                 pass
 
@@ -207,10 +274,6 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
                 # usage of CPU per core
                 final_cpu_info += f'CPU Core usages are listed below -\n'
 
-                cpu_per_core = ""
-                for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
-                    cpu_per_core += f"Core `{i}` : `{percentage}%`\n"
-
                 embed = discord.Embed(
                     title=f"CPU Usage of {getpass.getuser()}'s computer",
                     description="",
@@ -223,9 +286,132 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
                 embed.add_field(name="Base Information",
                                 value=final_cpu_info, inline=False)
 
+                with open("/proc/cpuinfo", "r") as f:
+                    file_info = f.readlines()
+
+                processor_list = ""
+                cpuinfo = [x.strip().split(":")[1]
+                           for x in file_info if "model name" in x]
+                for index, item in enumerate(cpuinfo):
+                    processor_list += f'`{index}`: `{item}`\n'
+
+                for chunk in textwrap.wrap(processor_list, 1024, replace_whitespace=False):
+                    embed.add_field(name="Processor",
+                                    value=chunk, inline=False)
+
+                cpu_per_core = ""
+                for i, percentage in enumerate(psutil.cpu_percent(percpu=True, interval=1)):
+                    cpu_per_core += f"Core `{i}` : `{percentage}%`\n"
+
                 for chunk in textwrap.wrap(cpu_per_core, 1024, replace_whitespace=False):
                     embed.add_field(name="CPU Usage per core",
                                     value=chunk, inline=False)
+
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+
+            except Exception as e:
+                await ctx.send(str(e))
+                return
+
+    @commands.command()
+    async def memmory(self, ctx):
+        if os.name == 'nt':
+            # https://stackoverflow.com/questions/56300490/how-to-get-all-windows-linux-user-and-not-only-current-user-with-python
+            pass
+            return
+        else:
+            # CPU Usage
+            try:
+                def bytes_to_GB(bytes):
+                    gb = bytes/(1024*1024*1024)
+                    gb = round(gb, 2)
+                    return gb
+
+                embed = discord.Embed(
+                    title=f"Memory Usage of {getpass.getuser()}'s computer",
+                    description="",
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_thumbnail(
+                    url="https://cdn.discordapp.com/attachments/877796755234783273/966386389249818704/unknown.png")
+
+                virtual_memory = psutil.virtual_memory()
+                virtual_memory_text = f'''**Present**: `{bytes_to_GB(virtual_memory.total)}`
+**Available**: `{bytes_to_GB(virtual_memory.available)}`
+**Used**: `{bytes_to_GB(virtual_memory.used)}`
+**Percentage Used**: `{bytes_to_GB(virtual_memory.percent)}`'''
+                embed.add_field(name="Memory",
+                                value=virtual_memory_text, inline=False)
+
+                swap = psutil.swap_memory()
+                swap_text = f'''**Total**: `{bytes_to_GB(swap.total)}`
+**Free**: `{bytes_to_GB(swap.free)}`
+**Used**: `{bytes_to_GB(swap.used)}`
+**Percentage Used**: `{swap.percent}%`'''
+                embed.add_field(name="Swap",
+                                value=swap_text, inline=False)
+
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+
+            except Exception as e:
+                await ctx.send(str(e))
+                return
+
+    @commands.command()
+    async def disks(self, ctx):
+        if os.name == 'nt':
+            return
+        else:
+            # Disks
+            try:
+
+                def bytes_to_GB(bytes):
+                    gb = bytes/(1024*1024*1024)
+                    gb = round(gb, 2)
+                    return gb
+
+                all_disks = []
+
+                embed = discord.Embed(
+                    title=f"CPU Usage of {getpass.getuser()}'s computer",
+                    description="",
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_thumbnail(
+                    url="https://cdn.discordapp.com/attachments/877796755234783273/966386389249818704/unknown.png")
+
+                disk_partitions = psutil.disk_partitions()
+
+                for partition in disk_partitions:
+                    disk_usage = psutil.disk_usage(partition.mountpoint)
+                    all_disks.append(
+                        {
+                            'Partition Device': partition.device,
+                            'File System': partition.fstype,
+                            'Mount Point': partition.mountpoint,
+                            'Total Disk Space': f'{bytes_to_GB(disk_usage.total)} GB',
+                            'Free Disk Space': f'{bytes_to_GB(disk_usage.free)} GB',
+                            'Used Disk Space': f'{bytes_to_GB(disk_usage.used)} GB',
+                            'Percentage Used': f'{disk_usage.percent} %'
+                        }
+                    )
+
+                for disk in all_disks:
+                    info = ''
+                    for key, value in disk.items():
+                        info += f'**{key}**: `{value}`\n'
+                    embed.add_field(name=str(disk['Partition Device']),
+                                    value=info, inline=False)
 
                 embed.set_footer(
                     text=f'Requested by {ctx.author.name}',
