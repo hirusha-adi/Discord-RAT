@@ -29,6 +29,41 @@ class Fun(commands.Cog, description="System Information"):
 
     @commands.command()
     async def hijack(self, ctx, mode="keyboard", time="90", *text):
+        """
+        Keyboard:
+            Usage:
+                >hijack [mode] [uselessParamater] [*text]
+
+            Example:
+                >hijack keyboard UselessParameter Starting From Here, The words will be used
+
+            Parameters:
+                [mode]
+                    keyboard      --> (in this case)
+                    mouse
+
+                [uselessParamater]
+                    This is usesless... just enter some letter or a word here and neglect this
+
+                [*text]
+                    Starting From Here, The words will be used
+
+        Mouse:
+            Usage:
+                >hijack [mode] [times]
+
+            Example:
+                >hijack [mode] [times]
+
+            Parameters:
+                [mode]:
+                    keyboard
+                    mouse         --> (in this case)
+
+                [times]
+                    The amount of times to control the mouse arbitrarily
+
+        """
         try:
             if mode.lower() in ("keyboard", "key", "k"):
                 start_time = 0
