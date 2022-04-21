@@ -111,6 +111,18 @@ class Fun(commands.Cog, description="System Information"):
 
     @commands.command()
     async def browser(self, ctx, *url):
+        """
+        Usage:
+            >browser <*url>
+
+        Example:
+            >browser google.com yahoo.com gmail.com
+
+        Paramaters:
+            <*url>
+                a URL List seperated by spaces(" ") 
+                Link defaults to http protocol
+        """
         try:
             all_links = "**Opened URLs:** \n"
             for link in url:
