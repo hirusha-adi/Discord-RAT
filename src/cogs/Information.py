@@ -12,6 +12,7 @@ import discord
 import psutil
 import requests
 from discord.ext import commands
+import clipboard
 
 
 class Information(commands.Cog, description="System Information"):
@@ -422,6 +423,46 @@ Mac Address: `{':'.join(re.findall('..','%012x' % uuid.getnode()))}`
             except Exception as e:
                 await ctx.send(str(e))
                 return
+
+    @commands.command()
+    async def copy(self, ctx, *args):
+        try:
+            text = ' '.join(args)
+            clipboard.copy(text)
+
+            for chunk in textwrap.wrap(text, 1024, replace_whitespace=False):
+                embed = discord.Embed(
+                    title=f"Copy to Clipboard",
+                    description="```" + chunk + "```",
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+        except Exception as e:
+            await ctx.send(str(e))
+
+    @commands.command()
+    async def clipboard(self, ctx):
+        try:
+            text = text = clipboard.paste()
+            for chunk in textwrap.wrap(text, 1024, replace_whitespace=False):
+                embed = discord.Embed(
+                    title=f"Clipboard Content",
+                    description="```" + chunk + "```",
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+        except Exception as e:
+            await ctx.send(str(e))
 
 
 def setup(client: commands.Bot):
