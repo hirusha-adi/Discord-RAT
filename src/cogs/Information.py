@@ -1,21 +1,17 @@
-import platform
-
-import discord
-import requests
 import getpass
 import os
-from datetime import datetime
-from discord.ext import commands
-
 import platform
-import socket
-import re
-import uuid
-import psutil
 import pwd
+import re
+import socket
 import textwrap
+import uuid
+from datetime import datetime
 
-from src.database.manager.main import users
+import discord
+import psutil
+import requests
+from discord.ext import commands
 
 
 class Information(commands.Cog, description="System Information"):
@@ -28,11 +24,15 @@ class Information(commands.Cog, description="System Information"):
         try:
             r = requests.get(f"https://ipapi.co/json")
             data = r.json()
+            print(data)
         except:
             await ctx.send("Request or result error with `ipapi.co`")
             return
 
-        google_maps_url = f'https://maps.google.com/?q={data["latitude"]},{data["longitude"]}'
+        try:
+            google_maps_url = f'https://maps.google.com/?q={data["latitude"]},{data["longitude"]}'
+        except:
+            google_maps_url = "Unable to process URL"
         information = f"""IP Address:  `{data["ip"]}`
 City:  `{data["city"]}`
 Region:  `{data["region"]}`
