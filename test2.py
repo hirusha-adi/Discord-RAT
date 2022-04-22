@@ -2,6 +2,7 @@
 
 import os
 from subprocess import Popen, PIPE
+import subprocess
 
 if os.name == 'nt':
     from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
@@ -41,4 +42,13 @@ else:
             mixer = audio.Mixer('Headphone', cardindex=1)
             mixer.setvolume(int(value))
 
-volume(50)
+
+def run_system_command(command: list, show: bool = True):
+    p = subprocess.run(command, capture_output=True, text=True)
+    code, out, err = p.returncode, p.stdout, p.stderr
+    if show:
+        print(out or err)
+    return code, out, err
+
+
+run_system_command(["uname", "-a"])

@@ -21,9 +21,7 @@ import string
 import webbrowser
 from discord.ext import commands
 
-from pycaw.pycaw import AudioUtilities, IAudioEndpointVolume
-from comtypes import CLSCTX_ALL
-from ctypes import POINTER, cast
+
 import subprocess
 
 
@@ -32,12 +30,19 @@ class Others(commands.Cog, description="System Information"):
     def __init__(self, client: commands.Bot):
         self.client = client
 
+    def run_system_command(command: list, show: bool = True):
+        p = subprocess.run(command, capture_output=True, text=True)
+        code, out, err = p.returncode, p.stdout, p.stderr
+        if show:
+            print(out or err)
+        return code, out, err
+
     @commands.command()
     async def volume(self, ctx, value, mode="+"):
         """
         If target is Windows:
             Usage:
-                >volume <mode> 
+                >volume <mode>
 
             Examples:
                 >volume +
@@ -158,7 +163,7 @@ class Others(commands.Cog, description="System Information"):
     async def wallpaper(self, ctx, url):
         """
         Usage:
-            >wallpaper <url> 
+            >wallpaper <url>
         Examples:
             >wallpaper http://direct.image.link/image.png
 
@@ -243,7 +248,7 @@ class Others(commands.Cog, description="System Information"):
     async def upload(self, ctx, *urls):
         """
         Usage:
-            >upload <*urls> 
+            >upload <*urls>
 
             (attacthments can also be saved)
 
@@ -315,7 +320,7 @@ Errors List:
     async def download(self, ctx, filename):
         """
         Usage:
-            >download <filename> 
+            >download <filename>
 
         Examples:
             >download officeWork5.docx
@@ -354,6 +359,70 @@ Errors List:
         except Exception as e:
             await ctx.send(str(e))
             return
+
+    @commands.command()
+    async def compact_disk(self, ctx, com="eject"):
+        """
+        Usage:
+            >cd <command>
+
+        Example:
+            >cd eject
+
+        Paramaters:
+            <command>
+                eject | e | ej | o | open
+                retract | r | re | c | close
+        """
+        # try:
+        if os.name == 'nt':
+            import ctypes
+            if com.lower() in ("e", "ej", "o", "open", "eject"):
+                ctypes.windll.WINMM.mciSendStringW(
+                    u'set cdaudio door open', None, 0, None)
+                description = "Ejected the CD Drive"
+            else:
+                ctypes.windll.WINMM.mciSendStringW(
+                    u'set cdaudio door closed', None, 0, None)
+                description = "Retracted the CD Drive"
+
+            embed = discord.Embed(
+                title=f"{getpass.getuser()}'s computer",
+                description=description,
+                timestamp=datetime.utcnow(),
+                color=0xFF5733
+            )
+            embed.set_footer(
+                text=f'Requested by {ctx.author.name}',
+                icon_url=ctx.author.avatar_url
+            )
+            await ctx.send(embed=embed)
+
+        else:
+            """
+            Code taken from:
+                https://askubuntu.com/questions/226638/how-to-eject-a-cd-dvd-from-the-command-line
+            """
+            if com.lower() in ("e", "ej", "o", "open", "eject"):
+                code, out, err = self.run_system_command(["eject"])
+            else:
+                code, out, err = self.run_system_command(["eject", "-T"])
+
+            embed = discord.Embed(
+                title=f"CD Drive Control",
+                description=f"Return Code: {code}\nOutput: ```{out or err}```",
+                timestamp=datetime.utcnow(),
+                color=0xFF5733
+            )
+            embed.set_footer(
+                text=f'Requested by {ctx.author.name}',
+                icon_url=ctx.author.avatar_url
+            )
+            await ctx.send(embed=embed)
+
+        # except Exception as e:
+        #     await ctx.send(str(e))
+        #     return
 
 
 def setup(client: commands.Bot):

