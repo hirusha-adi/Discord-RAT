@@ -51,9 +51,18 @@ async def unloadex(ctx, extension):
 
 @client.event
 async def on_message(message):
+    """
+    The bot can only be used by `users` and in `channel_ids` only!
+    If another user tried to send a message with this bot's prefix
+        The bot will reply with a saying the bot is still under development
+    """
+    if client.user == message.author:
+        return
+
     # Process commands only if in correct channel and requested by possible users
     if (message.channel.id in db_main.channel_ids) and (message.author.id in db_main.users):
         await client.process_commands(message)
+
     else:
         # dummy message for other users
         if message.content.lower().startswith(db_main.prefix):
